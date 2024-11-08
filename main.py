@@ -1,6 +1,7 @@
 import asyncio
+import sys
 from asyncio import TaskGroup
-from typing import List
+from typing import List, Coroutine
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
@@ -39,12 +40,17 @@ async def get_healthcheck(macro: str, macro_id: str):
     else:
         raise HTTPException(status_code=500, detail=f"{macro_id} is unhealthy")
 
-
 @app.on_event("startup")
 async def start_up():
     instrumentator.expose(app)
-    asyncio.create_task(run_loop())
+    asyncio.create_task(exit_on_exception(run_loop()))
 
+async def exit_on_exception(coroutine: Coroutine):
+    try:
+        await coroutine
+    except:
+        logger.exception(f"Coroutine {coroutine} raised an error")
+        sys.exit(1)
 
 async def run_loop():
     config = ExporterConfig()
@@ -59,7 +65,7 @@ async def run_loop():
                 if collector.specific_host and collector.specific_host != hostname:
                     continue
                 logger.info(f"Adding collectors for {collector.metric_names} on host {hostname}")
-                tg.create_task(collector.collect(host))
+                tg.create_task(exit_on_exception(collector.collect(host)))
 
 
 async def setup_healthchecks(hosts: List[Host], registry: CollectorRegistry, tg: TaskGroup):
@@ -83,7 +89,7 @@ async def setup_healthchecks(hosts: List[Host], registry: CollectorRegistry, tg:
     )
     for host in hosts:
         logger.info("Adding health probes")
-        tg.create_task(healthcheck(host, clickhouse_health, clickhouse_replication_health))
+        tg.create_task(exit_on_exception(healthcheck(host, clickhouse_health, clickhouse_replication_health)))
 
 
 if __name__ == "__main__":
