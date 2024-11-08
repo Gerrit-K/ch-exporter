@@ -41,11 +41,11 @@ async def healthcheck(host: Host, clickhouse_health: Enum, clickhouse_replicatio
                     session,
                     f"{host.url}/replicas_status",
             ):
-                clickhouse_replication_health.labels(labels).state("healthy")
+                clickhouse_replication_health.labels(*labels).state("healthy")
                 host.replication_healthy = True
                 logger.debug("Replication Status healthy")
             else:
-                clickhouse_replication_health.labels(labels).state("unhealthy")
+                clickhouse_replication_health.labels(*labels).state("unhealthy")
                 host.replication_healthy = False
                 logger.debug("Replication Status unhealthy")
             host.last_check = datetime.datetime.now()
