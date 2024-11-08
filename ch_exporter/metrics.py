@@ -33,7 +33,7 @@ class CHMetric(BaseModel):
     count: Optional[int] = None
 
     _prometheus_metric: Any = PrivateAttr()
-    _active_label_values_by_node: dict[str, set[tuple[str]]] = PrivateAttr(default_factory=lambda: defaultdict(set))
+    _active_label_values_by_node: dict[str, set[tuple[str, ...]]] = PrivateAttr(default_factory=lambda: defaultdict(set))
 
     @property
     def prefixed_name(self) -> str:
@@ -49,7 +49,7 @@ class CHMetric(BaseModel):
         self._prometheus_metric = class_(self.prefixed_name, self.description, all_labels, registry=registry)
 
     def observe(self, host: Host, label_values: Sequence[str], value: Any):
-        all_label_values = [str(v) for v in label_values] + [host.name] + host.macro_values
+        all_label_values = tuple(str(v) for v in label_values) + (host.name,) + tuple(host.macro_values)
         self._prometheus_metric.labels(*all_label_values).__getattribute__(self.observe_function)(value)
         self._active_label_values_by_node[host.name].add(all_label_values)
 
