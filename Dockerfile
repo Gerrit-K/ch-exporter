@@ -7,9 +7,10 @@ WORKDIR $APP_DIRECTORY
 RUN pip install poetry
 
 # Install dependencies
-COPY . ./
+COPY poetry.lock pyproject.toml ./
 RUN poetry config virtualenvs.in-project true \
   && poetry install --no-interaction --no-ansi -vvv
+COPY . ./
 
 USER 1000:1000
 
