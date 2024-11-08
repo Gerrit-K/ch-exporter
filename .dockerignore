@@ -2,6 +2,7 @@ Dockerfile
 justfile
 .idea/
 .env
+.venv
 **/__pycache__/
 .git/
 .gitignore
