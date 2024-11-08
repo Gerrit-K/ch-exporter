@@ -14,6 +14,6 @@ COPY . ./
 
 USER 1000:1000
 
-CMD ["/app/.venv/bin/python3", "-m", "gunicorn", "-b", "0.0.0.0:8000", "main:app", "-k", "uvicorn.workers.UvicornWorker", "--workers", "1"]
+CMD ["/app/.venv/bin/uvicorn", "--host", "0.0.0.0", "--port", "8000", "main:app"]
 
 
